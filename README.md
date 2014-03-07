@@ -16,18 +16,18 @@ XCB lib is more clear/smaller than X11 and faster because it uses more "low-leve
 <p>
 here is a small benchmark<i>(source: Arnaud Fontaine/Porting a Window Manager from Xlib to XCB:)</i>
 
-Pour 50 000 messages traités :
+for 50 000 messages :
 <ul>
-<li> XCB wrong usage(synchronous)
+<li> XCB wrong usage(synchronous)<br>
 Duration : 0.662640 s
 
-<li> XCB bad usage (asynchronous)
-Duration : 0.020377 s
+<li> XCB bad usage (asynchronous)<br>
+Duration : 0.020377 s<br>
 Ratio: 32.52
 
-<li> Xlib traditional usage
-Duration: 0.778176 s
+<li> Xlib traditional usage<br>
+Duration: 0.778176 s<br>
 Ratio: 38.19
 </ul>
-Asynchronous version of XCB message handling is 25 times faster than X11 one  \o/
+On average, asynchronous version of XCB message handling is 25 times faster than X11 one  \o/
 </p>
