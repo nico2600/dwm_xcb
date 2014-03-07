@@ -13,4 +13,18 @@ Originally, it's based on X11 library which contain many unused code (old or eso
 So, I wanted to try it with XCB :-)
 XCB lib is more clear/smaller than X11 and faster because it uses more "low-level" stuff
 
+here is a small benchmark(source: Arnaud Fontaine/Porting a Window Manager from Xlib to XCB:)
 
+Pour 50 000 messages traités :
+=> XCB wrong usage(synchronous)
+Duration : 0.662640 s
+
+=> XCB bad usage (asynchronous)
+Duration : 0.020377 s
+Ratio: 32.52
+
+=> Xlib traditional usage
+Duration: 0.778176 s
+Ratio: 38.19
+
+Asynchronous version of XCB message handling is 25 times faster than X11 one  \o/
