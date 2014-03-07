@@ -19,13 +19,6 @@
  * Keys and tagging rules are organized as arrays and defined in config.h.
  *
  * To understand everything else, start reading main().
- * commit 90af1ced3c634683ec4c0e51c5f1e69461a9192a
- * Author: Connor Lane Smith <cls@lubutu.com>
- * Date:   Tue Oct 25 20:08:08 2011 +0100
- *
- *     apply resize hints in floating layout
- *
- *     git log -p 5.8.2..6.0
  */
 
 #include <errno.h>
@@ -72,13 +65,13 @@
 #define TEXTW(X)                (textnw(X, strlen(X)) + dc.font.height)
 
 /* enums */
-enum { CurNormal, CurResize, CurMove, CurLast };        /* cursor */
-enum { ColBorder, ColFG, ColBG, ColLast };              /* color */
+enum { CurNormal, CurResize, CurMove, CurLast };              /* cursor */
+enum { ColBorder, ColFG, ColBG, ColLast };                    /* color */
 enum { NetSupported, NetWMName, NetWMState,
-   NetWMFullscreen, NetActiveWindow, NetLast};                      /* EWMH atoms */
-enum { WMProtocols, WMDelete, WMState, WMLast };        /* default atoms */
+   NetWMFullscreen, NetActiveWindow, NetLast};                /* EWMH atoms */
+enum { WMProtocols, WMDelete, WMState, WMLast };              /* default atoms */
 enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
-   ClkClientWin, ClkRootWin, ClkLast };             /* clicks */
+   ClkClientWin, ClkRootWin, ClkLast };                       /* clicks */
 
 typedef union {
    int i;
@@ -209,7 +202,6 @@ static void grabbuttons(Client *c, bool focused);
 static void grabkeys(void);
 static void incnmaster(const Arg *arg);
 static void initfont(const char *fontstr);
-//static bool isprotodel(Client *c);
 static int keypress(xcb_generic_event_t *e);
 static void killclient(const Arg *arg);
 static void manage(xcb_window_t w);
@@ -363,7 +355,8 @@ static void clearevent(int response_type)
 }
 
 /* function implementations */
-void applyrules(Client *c) {
+void
+applyrules(Client *c) {
    const char *class, *instance;
    unsigned int i;
    const Rule *r;
@@ -400,7 +393,8 @@ void applyrules(Client *c) {
    c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
 }
 
-bool applysizehints(Client *c, int *x, int *y, int *w, int *h, bool interact) {
+bool
+applysizehints(Client *c, int *x, int *y, int *w, int *h, bool interact) {
    bool baseismin;
    Monitor *m = c->mon;
 
@@ -465,7 +459,8 @@ bool applysizehints(Client *c, int *x, int *y, int *w, int *h, bool interact) {
    return *x != c->x || *y != c->y || *w != c->w || *h != c->h;
 }
 
-void arrange(Monitor *m) {
+void
+arrange(Monitor *m) {
    if(m)
       showhide(m->stack);
    else for(m = mons; m; m = m->next)
@@ -476,24 +471,28 @@ void arrange(Monitor *m) {
       arrangemon(m);
 }
 
-void arrangemon(Monitor *m) {
+void
+arrangemon(Monitor *m) {
    strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, sizeof m->ltsymbol);
    if(m->lt[m->sellt]->arrange)
       m->lt[m->sellt]->arrange(m);
    restack(m);
 }
 
-void attach(Client *c) {
+void
+attach(Client *c) {
    c->next = c->mon->clients;
    c->mon->clients = c;
 }
 
-void attachstack(Client *c) {
+void
+attachstack(Client *c) {
    c->snext = c->mon->stack;
    c->mon->stack = c;
 }
 
-int buttonpress(xcb_generic_event_t *ev) {
+int
+buttonpress(xcb_generic_event_t *ev) {
    unsigned int i, x, click;
    Arg arg = {0};
    Client *c;
@@ -519,7 +518,6 @@ int buttonpress(xcb_generic_event_t *ev) {
       }
       else if(e->event_x < x + blw)
          click = ClkLtSymbol;
-//      else if(e->event_x > selmon->wx + selmon->ww - TEXTW(stext))
       else if(e->event_x > selmon->ww - TEXTW(stext))
          click = ClkStatusText;
       else
@@ -537,7 +535,8 @@ int buttonpress(xcb_generic_event_t *ev) {
    return EXIT_SUCCESS;
 }
 
-void checkotherwm(void) {
+void
+checkotherwm(void) {
    /* this should cause an error if some other window manager is running */
    uint32_t values[] = { XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT };
    xcb_void_cookie_t wm_cookie = xcb_change_window_attributes_checked(conn, root, XCB_CW_EVENT_MASK, values);
@@ -550,7 +549,8 @@ void checkotherwm(void) {
    }
 }
 
-void cleanup(void) {
+void
+cleanup(void) {
    Arg a = {.ui = ~0};
    Layout foo = { "", NULL };
    Monitor *m;
@@ -578,7 +578,8 @@ void cleanup(void) {
    xcb_flush(conn);
 }
 
-void cleanupmon(Monitor *mon) {
+void
+cleanupmon(Monitor *mon) {
    Monitor *m;
 
    if(mon == mons)
@@ -593,7 +594,8 @@ void cleanupmon(Monitor *mon) {
    free(mon);
 }
 
-void clearurgent(Client *c) {
+void
+clearurgent(Client *c) {
    xcb_icccm_wm_hints_t wmh;
    xcb_get_property_cookie_t wmh_cookie;
 
@@ -605,7 +607,8 @@ void clearurgent(Client *c) {
    xcb_icccm_set_wm_hints(conn, c->win, &wmh);
 }
 
-void configure(Client *c) {
+void
+configure(Client *c) {
    xcb_configure_notify_event_t config_event;
    config_event.response_type = XCB_CONFIGURE_NOTIFY;
    config_event.event = c->win;
@@ -620,7 +623,8 @@ void configure(Client *c) {
    xcb_send_event(conn, false, c->win, XCB_EVENT_MASK_STRUCTURE_NOTIFY, (char*)&config_event);
 }
 
-int configurenotify(xcb_generic_event_t *e) {
+int
+configurenotify(xcb_generic_event_t *e) {
    Monitor *m;
    xcb_configure_notify_event_t *ev = (xcb_configure_notify_event_t*)e;
    bool dirty;
@@ -646,7 +650,8 @@ int configurenotify(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-int configurerequest(xcb_generic_event_t *e) {
+int
+configurerequest(xcb_generic_event_t *e) {
    Client *c;
    Monitor *m;
    xcb_configure_request_event_t *ev = (xcb_configure_request_event_t*)e;
@@ -716,7 +721,8 @@ int configurerequest(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-Monitor* createmon(void) {
+Monitor*
+createmon(void) {
    Monitor *m;
 
    m = (Monitor*)malloc_safe(sizeof(Monitor));
@@ -731,7 +737,8 @@ Monitor* createmon(void) {
    return m;
 }
 
-int destroynotify(xcb_generic_event_t *e) {
+int
+destroynotify(xcb_generic_event_t *e) {
    Client *c;
    xcb_destroy_notify_event_t *ev = (xcb_destroy_notify_event_t*)e;
 
@@ -741,14 +748,16 @@ int destroynotify(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-void detach(Client *c) {
+void
+detach(Client *c) {
    Client **tc;
 
    for(tc = &c->mon->clients; *tc && *tc != c; tc = &(*tc)->next);
    *tc = c->next;
 }
 
-void detachstack(Client *c) {
+void
+detachstack(Client *c) {
    Client **tc, *t;
 
    for(tc = &c->mon->stack; *tc && *tc != c; tc = &(*tc)->snext);
@@ -760,7 +769,8 @@ void detachstack(Client *c) {
    }
 }
 
-void die(const char *errstr, ...) {
+void
+die(const char *errstr, ...) {
    va_list ap;
 
    va_start(ap, errstr);
@@ -784,7 +794,8 @@ Monitor* dirtomon(int dir) {
    return m;
 }
 
-void drawbar(Monitor *m) {
+void
+drawbar(Monitor *m) {
    int x;
    unsigned int i, occ = 0, urg = 0;
    uint32_t *col;
@@ -833,14 +844,16 @@ void drawbar(Monitor *m) {
    xcb_flush(conn);
 }
 
-void drawbars(void) {
+void
+drawbars(void) {
    Monitor *m;
 
    for(m = mons; m; m = m->next)
       drawbar(m);
 }
 
-void drawsquare(bool filled, bool empty, bool invert, uint32_t col[ColLast], xcb_window_t w) {
+void
+drawsquare(bool filled, bool empty, bool invert, uint32_t col[ColLast], xcb_window_t w) {
    int x;
    xcb_rectangle_t r = { dc.x, dc.y, dc.w, dc.h };
 
@@ -886,7 +899,8 @@ void drawtext(const char *text, uint32_t col[ColLast], bool invert, xcb_window_t
    xcb_image_text_8(conn, len, w, dc.gc, x, y, buf);
 }
 
-int enternotify(xcb_generic_event_t *e) {
+int
+enternotify(xcb_generic_event_t *e) {
    Client *c;
    Monitor *m;
    xcb_enter_notify_event_t *ev = (xcb_enter_notify_event_t*)e;
@@ -894,9 +908,8 @@ int enternotify(xcb_generic_event_t *e) {
    if((ev->mode != XCB_NOTIFY_MODE_NORMAL || ev->detail == XCB_NOTIFY_DETAIL_INFERIOR) && ev->event != root)
       return EXIT_SUCCESS;
    c = wintoclient(ev->event);
-//   if((m = wintomon(ev->event)) && m != selmon) {
-      m = c ? c->mon : wintomon(ev->event);
-      if(m != selmon) {
+   m = c ? c->mon : wintomon(ev->event);
+   if(m != selmon) {
       unfocus(selmon->sel, true);
       selmon = m;
    }
@@ -906,7 +919,8 @@ int enternotify(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-int expose(xcb_generic_event_t *e) {
+int
+expose(xcb_generic_event_t *e) {
    Monitor *m;
    xcb_expose_event_t *ev = (xcb_expose_event_t*)e;
 
@@ -916,7 +930,8 @@ int expose(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-void focus(Client *c) {
+void
+focus(Client *c) {
    if(!c || !ISVISIBLE(c))
       for(c = selmon->stack; c && !ISVISIBLE(c); c = c->snext);
    if(selmon->sel)
@@ -938,7 +953,8 @@ void focus(Client *c) {
    drawbars();
 }
 
-int focusin(xcb_generic_event_t *e) { /* there are some broken focus acquiring clients */
+int
+focusin(xcb_generic_event_t *e) { /* there are some broken focus acquiring clients */
    xcb_focus_in_event_t *ev = (xcb_focus_in_event_t*)e;
 
    if(selmon->sel && ev->event != selmon->sel->win)
@@ -948,7 +964,8 @@ int focusin(xcb_generic_event_t *e) { /* there are some broken focus acquiring c
    return EXIT_SUCCESS;
 }
 
-void focusmon(const Arg *arg) {
+void
+focusmon(const Arg *arg) {
    Monitor *m;
 
    if(!mons->next)
@@ -960,7 +977,8 @@ void focusmon(const Arg *arg) {
    focus(NULL);
 }
 
-void focusstack(const Arg *arg) {
+void
+focusstack(const Arg *arg) {
    Client *c = NULL, *i;
 
    if(!selmon->sel)
@@ -985,7 +1003,8 @@ void focusstack(const Arg *arg) {
    }
 }
 
-uint32_t getcolor(const char *colstr)
+uint32_t
+getcolor(const char *colstr)
 {
    uint32_t pixel;
    uint16_t red, green, blue;
@@ -1031,7 +1050,8 @@ uint32_t getcolor(const char *colstr)
    return pixel;
 }
 
-bool getrootptr(int *x, int *y) {
+bool
+getrootptr(int *x, int *y) {
    xcb_query_pointer_reply_t *reply = xcb_query_pointer_reply(conn, xcb_query_pointer(conn, root), &err);
    testErr();
 
@@ -1084,7 +1104,8 @@ long getstate(xcb_window_t w) {		// FIXME: why does this return long?
    return result;
 }
 
-bool gettextprop(xcb_window_t w, xcb_atom_t atom, char *text, unsigned int size) {
+bool
+gettextprop(xcb_window_t w, xcb_atom_t atom, char *text, unsigned int size) {
    xcb_icccm_get_text_property_reply_t reply;
    if(!xcb_icccm_get_text_property_reply(conn, xcb_icccm_get_text_property(conn, w, atom), &reply, &err))
    {
@@ -1109,7 +1130,8 @@ bool gettextprop(xcb_window_t w, xcb_atom_t atom, char *text, unsigned int size)
    return true;
 }
 
-void grabbuttons(Client *c, bool focused) {
+void
+grabbuttons(Client *c, bool focused) {
    unsigned int i, j;
    unsigned int modifiers[] = { 0, XCB_MOD_MASK_LOCK, numlockmask, numlockmask|XCB_MOD_MASK_LOCK };
 
@@ -1129,7 +1151,8 @@ void grabbuttons(Client *c, bool focused) {
             XCB_BUTTON_INDEX_ANY, XCB_BUTTON_MASK_ANY);
 }
 
-void grabkeys(void)
+void
+grabkeys(void)
 {
    updatenumlockmask();
 
@@ -1156,7 +1179,8 @@ incnmaster(const Arg *arg) {
 }
 
 
-void initfont(const char *fontstr) {
+void
+initfont(const char *fontstr) {
    dc.font.xfont = xcb_generate_id(conn);
    testCookie(xcb_open_font_checked(conn, dc.font.xfont, strlen(fontstr), fontstr));
 
@@ -1170,22 +1194,6 @@ void initfont(const char *fontstr) {
    free(fontreply);
 }
 
-// XXX to remove if Xsendevent functin is ok
-/*
-bool isprotodel(Client *c) {
-   int n;
-   bool ret = false;
-   xcb_icccm_get_wm_protocols_reply_t proto_reply;
-
-   if(xcb_icccm_get_wm_protocols_reply(conn, xcb_icccm_get_wm_protocols_unchecked(conn, c->win, wmatom[WMProtocols]), &proto_reply, NULL)) {
-
-      while(!ret && n--)
-         ret = proto_reply[n] == wmatom[WMDelete];
-      xcb_icccm_get_wm_protocols_reply_wipe(&proto_reply);
-   }
-   return ret;
-}*/
-
 #ifdef XINERAMA
 static bool isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
 
@@ -1197,7 +1205,8 @@ static bool isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInf
 }
 #endif /* XINERAMA */
 
-int keypress(xcb_generic_event_t *e) {
+int
+keypress(xcb_generic_event_t *e) {
    unsigned int i;
    xcb_keysym_t keysym;
    xcb_key_press_event_t *ev = (xcb_key_press_event_t*)e;
@@ -1212,14 +1221,13 @@ int keypress(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-void killclient(const Arg *arg) {
+void
+killclient(const Arg *arg) {
    xcb_client_message_event_t ev;
 
    if(!selmon->sel)
       return;
-   // XXX TODO
      if(!sendevent(selmon->sel,wmatom[WMDelete])) {
-  // if(isprotodel(selmon->sel)) {
       ev.response_type = XCB_CLIENT_MESSAGE;
       ev.window = selmon->sel->win;
       ev.format = 32;
@@ -1238,8 +1246,8 @@ void killclient(const Arg *arg) {
    }
 }
 
-void manage(xcb_window_t w)
-{
+void
+manage(xcb_window_t w){
    Client *c, *t = NULL;
    xcb_window_t trans = XCB_WINDOW_NONE;
 
@@ -1315,7 +1323,8 @@ void manage(xcb_window_t w)
    focus(NULL);
 }
 
-int mappingnotify(xcb_generic_event_t *e) {
+int
+mappingnotify(xcb_generic_event_t *e) {
    xcb_mapping_notify_event_t *ev = (xcb_mapping_notify_event_t*)e;
 
    xcb_refresh_keyboard_mapping(syms, ev);
@@ -1325,7 +1334,8 @@ int mappingnotify(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-int maprequest(xcb_generic_event_t *e) {
+int
+maprequest(xcb_generic_event_t *e) {
    xcb_map_request_event_t *ev = (xcb_map_request_event_t*)e;
 
    xcb_get_window_attributes_reply_t *ga_reply =
@@ -1343,7 +1353,8 @@ int maprequest(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-void monocle(Monitor *m) {
+void
+monocle(Monitor *m) {
    unsigned int n = 0;
    Client *c;
 
@@ -1356,7 +1367,8 @@ void monocle(Monitor *m) {
       resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, false);
 }
 
-void movemouse(const Arg *arg) {
+void
+movemouse(const Arg *arg) {
    int x, y, ocx, ocy, nx, ny;
    Client *c;
    Monitor *m;
@@ -1425,10 +1437,12 @@ void movemouse(const Arg *arg) {
    }
 }
 
-Client* nexttiled(Client *c) {
+Client*
+nexttiled(Client *c) {
    for(; c && (c->isfloating || !ISVISIBLE(c)); c = c->next);
    return c;
 }
+
 void
 pop(Client *c) {
    detach(c);
@@ -1437,8 +1451,9 @@ pop(Client *c) {
    arrange(c->mon);
 }
 
+Monitor*
+ptrtomon(int x, int y) {
 
-Monitor* ptrtomon(int x, int y) {
    Monitor *m;
 
    for(m = mons; m; m = m->next)
@@ -1447,7 +1462,9 @@ Monitor* ptrtomon(int x, int y) {
    return selmon;
 }
 
-int propertynotify(xcb_generic_event_t *e) {
+int
+propertynotify(xcb_generic_event_t *e) {
+
    Client *c;
    xcb_property_notify_event_t *ev = (xcb_property_notify_event_t*)e;
 
@@ -1487,7 +1504,8 @@ int propertynotify(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-int clientmessage(xcb_generic_event_t *e) {
+int
+clientmessage(xcb_generic_event_t *e) {
    xcb_client_message_event_t *cme = (xcb_client_message_event_t*)e;
    Client *c  = wintoclient(cme->window);
 
@@ -1541,18 +1559,21 @@ int clientmessage(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-void quit(const Arg *arg) {
+void
+quit(const Arg *arg) {
    cleanup();
    xcb_disconnect(conn);
    exit(0);
 }
 
-void resize(Client *c, int x, int y, int w, int h, bool interact) {
+void
+resize(Client *c, int x, int y, int w, int h, bool interact) {
    if(applysizehints(c, &x, &y, &w, &h, interact))
       resizeclient(c, x, y, w, h);
 }
 
-void resizeclient(Client *c, int x, int y, int w, int h) {
+void
+resizeclient(Client *c, int x, int y, int w, int h) {
    uint32_t values[] = { x, y, w, h, c->bw };
    xcb_configure_window(conn, c->win, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y |
          XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT | XCB_CONFIG_WINDOW_BORDER_WIDTH,
@@ -1565,7 +1586,8 @@ void resizeclient(Client *c, int x, int y, int w, int h) {
    xcb_flush(conn);
 }
 
-void resizemouse(const Arg *arg) {
+void
+resizemouse(const Arg *arg) {
    int ocx, ocy;
    int nw, nh;
    Client *c;
@@ -1634,7 +1656,8 @@ void resizemouse(const Arg *arg) {
    }
 }
 
-void restack(Monitor *m) {
+void
+restack(Monitor *m) {
    Client *c;
 
    drawbar(m);
@@ -1659,7 +1682,8 @@ void restack(Monitor *m) {
    clearevent(XCB_ENTER_NOTIFY);
 }
 
-void scan(void) {
+void
+scan(void) {
    unsigned int i, num;
    xcb_window_t *wins = NULL;
 
@@ -1707,7 +1731,8 @@ void scan(void) {
       free(query_reply);	// this frees the whole thing, including wins
 }
 
-void sendmon(Client *c, Monitor *m) {
+void
+sendmon(Client *c, Monitor *m) {
    if(c->mon == m)
       return;
    unfocus(c, true);
@@ -1721,36 +1746,39 @@ void sendmon(Client *c, Monitor *m) {
    arrange(NULL);
 }
 
-void setclientstate(Client *c, long state) {
+void
+setclientstate(Client *c, long state) {
    long data[] = { state, XCB_ATOM_NONE };
 
    xcb_change_property(conn, XCB_PROP_MODE_REPLACE, c->win, wmatom[WMState],
          wmatom[WMState], 32, 2, (unsigned char*)data);
 }
 
-// XXX TODO XXX
-// convert to xcb
 bool
 sendevent(Client *c,xcb_atom_t proto) {
    int i, atom_len;
    xcb_atom_t protocols;
-   bool exists = false;
-uint8_t ret ;
-xcb_atom_t * atoms;
+   uint8_t ret ;
+   xcb_atom_t * atoms;
    xcb_client_message_event_t ev;
    xcb_get_property_reply_t  *wpr;
    xcb_get_property_cookie_t cookie;
+   bool exists = false;
+
+   //workaround, some function/struct missing on debian dev packages :/
+
    cookie = xcb_get_property(conn, 0, c->win, protocols, XCB_ATOM_ATOM, 0, UINT_MAX);
    xcb_get_property_reply_t *reply = xcb_get_property_reply(conn, cookie, NULL);
 
-   if(!reply || reply->type != XCB_ATOM_ATOM || reply->format != 32)
+   if(!reply || reply->type != XCB_ATOM_ATOM || reply->format != 32){
       ret=0;
-
-   wpr = reply;
-   atom_len = xcb_get_property_value_length(wpr) /  (reply->format / 8);
-   atoms = (xcb_atom_t *) xcb_get_property_value(wpr);
-
-   ret= 1;
+   }
+   else{
+      wpr = reply;
+      atom_len = xcb_get_property_value_length(wpr) /  (reply->format / 8);
+      atoms = (xcb_atom_t *) xcb_get_property_value(wpr);
+      ret=1;
+   };
 
    if(!ret)
       free(reply);
@@ -1784,9 +1812,9 @@ setfocus(Client *c) {
             XCB_CURRENT_TIME);
    sendevent(c, wmatom[WmTakeFocus]);
 }*/
-// NOT SUR XCB converted almost done
 
-void setlayout(const Arg *arg) {
+void
+setlayout(const Arg *arg) {
    if(!arg || !arg->v || arg->v != selmon->lt[selmon->sellt])
       selmon->sellt ^= 1;
    if(arg && arg->v)
@@ -1799,7 +1827,8 @@ void setlayout(const Arg *arg) {
 }
 
 /* arg > 1.0 will set mfact absolutly */
-void setmfact(const Arg *arg) {
+void
+setmfact(const Arg *arg) {
    float f;
 
    if(!arg || !selmon->lt[selmon->sellt]->arrange)
@@ -1827,7 +1856,7 @@ static const struct
    { "_NET_WM_NAME", NetWMName },
    { "_NET_WM_STATE", NetWMState },
    { "_NET_WM_STATE_FULLSCREEN", NetWMFullscreen },
-//   { "WM_TAKE_FOCUS", WmTakeFocus },
+//   { "WM_TAKE_FOCUS", WmTakeFocus }, // XXX FIX THAT XXX
    { "_NET_ACTIVE_WINDOW", NetActiveWindow }
 };
 
@@ -1982,7 +2011,8 @@ int textnw(const char *text, unsigned int len) {
    return reply->overall_width;
 }
 
-void tile(Monitor *m) {
+void
+tile(Monitor *m) {
    unsigned int i, n, h, mw, my, ty;
    Client *c;
 
@@ -2008,7 +2038,8 @@ void tile(Monitor *m) {
 
 }
 
-void togglebar(const Arg *arg) {
+void
+togglebar(const Arg *arg) {
    selmon->showbar = !selmon->showbar;
    updatebarpos(selmon);
    uint32_t values[] = { selmon->wx, selmon->by, selmon->ww, bh };
@@ -2017,7 +2048,8 @@ void togglebar(const Arg *arg) {
    arrange(selmon);
 }
 
-void togglefloating(const Arg *arg) {
+void
+togglefloating(const Arg *arg) {
    if(!selmon->sel)
       return;
    selmon->sel->isfloating = !selmon->sel->isfloating || selmon->sel->isfixed;
@@ -2027,7 +2059,8 @@ void togglefloating(const Arg *arg) {
    arrange(selmon);
 }
 
-void toggletag(const Arg *arg) {
+void
+toggletag(const Arg *arg) {
    unsigned int newtags;
 
    if(!selmon->sel)
@@ -2040,7 +2073,8 @@ void toggletag(const Arg *arg) {
    }
 }
 
-void toggleview(const Arg *arg) {
+void
+toggleview(const Arg *arg) {
    unsigned int newtagset = selmon->tagset[selmon->seltags] ^ (arg->ui & TAGMASK);
 
    if(newtagset) {
@@ -2050,7 +2084,8 @@ void toggleview(const Arg *arg) {
    }
 }
 
-void unfocus(Client *c, bool setfocus) {
+void
+unfocus(Client *c, bool setfocus) {
    if(!c)
       return;
    grabbuttons(c, false);
@@ -2059,7 +2094,8 @@ void unfocus(Client *c, bool setfocus) {
       xcb_set_input_focus(conn, XCB_INPUT_FOCUS_POINTER_ROOT, c->win, XCB_CURRENT_TIME);
 }
 
-void unmanage(Client *c, bool destroyed) {
+void
+unmanage(Client *c, bool destroyed) {
    Monitor *m = c->mon;
 
    /* The server grab construct avoids race conditions. */
@@ -2079,7 +2115,8 @@ void unmanage(Client *c, bool destroyed) {
    arrange(m);
 }
 
-int unmapnotify(xcb_generic_event_t *e) {
+int
+unmapnotify(xcb_generic_event_t *e) {
    Client *c;
    xcb_unmap_notify_event_t *ev = (xcb_unmap_notify_event_t*)e;
 
@@ -2089,7 +2126,8 @@ int unmapnotify(xcb_generic_event_t *e) {
    return EXIT_SUCCESS;
 }
 
-void updatebars(void) {
+void
+updatebars(void) {
    Monitor *m;
    uint32_t values[] = { XCB_BACK_PIXMAP_NONE, dc.norm[ColBG], true, XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_EXPOSURE, cursor[CurNormal] };
    for(m = mons; m; m = m->next) {
@@ -2102,7 +2140,8 @@ void updatebars(void) {
    }
 }
 
-void updatebarpos(Monitor *m) {
+void
+updatebarpos(Monitor *m) {
    m->wy = m->my;
    m->wh = m->mh;
    if(m->showbar) {
@@ -2114,7 +2153,8 @@ void updatebarpos(Monitor *m) {
       m->by = -bh;
 }
 
-bool updategeom(void) {
+bool
+updategeom(void) {
    bool dirty = false;
 
 #ifdef XINERAMA
@@ -2196,7 +2236,8 @@ bool updategeom(void) {
    return dirty;
 }
 
-void updatenumlockmask(void)
+void
+updatenumlockmask(void)
 {
    /* taken from i3 */
    xcb_get_modifier_mapping_reply_t* reply =
@@ -2222,7 +2263,8 @@ void updatenumlockmask(void)
    free(reply);
 }
 
-void updatesizehints(Client *c)
+void
+updatesizehints(Client *c)
 {
    xcb_size_hints_t hints;
 
@@ -2271,7 +2313,8 @@ void updatesizehints(Client *c)
          && c->maxw == c->minw && c->maxh == c->minh);
 }
 
-void updatetitle(Client *c) {
+void
+updatetitle(Client *c) {
    if(!gettextprop(c->win, netatom[NetWMName], c->name, sizeof c->name))
    {
       if(!gettextprop(c->win, XCB_ATOM_WM_NAME, c->name, sizeof c->name))
@@ -2279,13 +2322,15 @@ void updatetitle(Client *c) {
    }
 }
 
-void updatestatus(void) {
+void
+updatestatus(void) {
    if(!gettextprop(root, XCB_ATOM_WM_NAME, stext, sizeof(stext)))
       strcpy(stext, "xcb dwm-"VERSION);
    drawbar(selmon);
 }
 
-void updatewmhints(Client *c) {
+void
+updatewmhints(Client *c) {
    xcb_icccm_wm_hints_t wmh;
 
    if(!xcb_icccm_get_wm_hints_reply(conn, xcb_icccm_get_wm_hints(conn, c->win), &wmh, &err))
@@ -2301,7 +2346,8 @@ void updatewmhints(Client *c) {
 
 }
 
-void view(const Arg *arg) {
+void
+view(const Arg *arg) {
    if((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
       return;
    selmon->seltags ^= 1; /* toggle sel tagset */
@@ -2311,7 +2357,8 @@ void view(const Arg *arg) {
    arrange(selmon);
 }
 
-Client* wintoclient(xcb_window_t w) {
+Client*
+wintoclient(xcb_window_t w) {
    Client *c;
    Monitor *m;
 
@@ -2322,7 +2369,8 @@ Client* wintoclient(xcb_window_t w) {
    return NULL;
 }
 
-Monitor* wintomon(xcb_window_t w) {
+Monitor*
+wintomon(xcb_window_t w) {
    int x, y;
    Client *c;
    Monitor *m;
@@ -2337,11 +2385,11 @@ Monitor* wintomon(xcb_window_t w) {
    return selmon;
 }
 
-void zoom(const Arg *arg) {
+void
+zoom(const Arg *arg) {
    Client *c = selmon->sel;
 
    if(!selmon->lt[selmon->sellt]->arrange
-//         || selmon->lt[selmon->sellt]->arrange == monocle
          || (selmon->sel && selmon->sel->isfloating))
       return;
    if(c == nexttiled(selmon->clients))
@@ -2350,7 +2398,8 @@ void zoom(const Arg *arg) {
    pop(c);
 }
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
    xcb_generic_event_t *event;
 
    signal(SIGINT, sigint);
@@ -2368,10 +2417,13 @@ int main(int argc, char *argv[]) {
    xscreen = xcb_aux_get_screen(conn, 0);
    root = xscreen->root;
 
+   //quit if found an other WM
    checkotherwm();
+
    setup();
    scan();
 
+   // Main loop, handle message
    while((event = xcb_wait_for_event(conn)))
    {
       for(const handler_func_t* handler = handler_funs; handler->func != NULL; handler++)
