@@ -1,0 +1,11 @@
+
+ => Need to integrate more patch
+
+last patch integrated is:
+commit 90af1ced3c634683ec4c0e51c5f1e69461a9192a
+Author: Connor Lane Smith <cls@lubutu.com>
+Date:   Mon Oct 31 20:09:27 2011 +0100
+
+ => Valgrind it to check it + better coding style
+
+ => wait a couple of month and read the source code to check bug with fresh mind 
