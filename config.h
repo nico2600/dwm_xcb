@@ -10,13 +10,38 @@ static const char normfgcolor[]          = "#C5C8C6";
 static const char selbordercolor[]       = "#8B0000";
 static const char selbgcolor[]           = "#1D1F21";
 static const char selfgcolor[]           = "#81A2BE";
+static const char chatclient[]           = "Skype™";
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const bool showbar           = true;     /* false means no bar */
 static const bool topbar            = true;     /* False means bottom bar */
 
+static const Layout layouts[] = {
+	/* symbol     arrange function */
+	{ "[T]",      tile },    /* first entry is default */
+	{ "[F]",      NULL },    /* no layout function means floating behavior */
+	{ "[M]",      monocle },
+   { "[B]",      bstack },
+   { "[C]",      chat }
+};
+
+
 /* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+//static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+/* tagging */
+static const Tag tags[] = {
+   /* name       layout       mfact nmaster */
+   { "1",  &layouts[0], -1,   -1 },
+   { "2",  &layouts[1], 0.80,     -1 },
+   { "3", &layouts[0], -1, -1 },
+   { "4",  &layouts[3], -1,   -1 },
+   { "5",  &layouts[0], -1,   -1 },
+   { "7",  &layouts[2], -1,   -1 },
+   { "8",   &layouts[3], -1,  -1 },
+   { "9",   &layouts[4], -1,  -1 },
+   { "∞",   &layouts[0], -1,  -1 },
+};
+
 
 static const Rule rules[] = {
 	/* class      instance    title       tags mask     isfloating   monitor */
@@ -28,16 +53,8 @@ static const Rule rules[] = {
 static const float mfact      = 0.55; /* factor of master area size [0.05..0.95] */
 static const int nmaster      = 1;    /* number of clients in master area */
 static const bool resizehints = true; /* true means respect size hints in tiled resizals */
-
-static const Layout layouts[] = {
-	/* symbol     arrange function */
-	{ "[T]",      tile },    /* first entry is default */
-	{ "[F]",      NULL },    /* no layout function means floating behavior */
-	{ "[M]",      monocle },
-};
-
 /* key definitions */
-#define MODKEY Mod4Mask
+#define MODKEY Mod1Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
