@@ -1,6 +1,7 @@
 <h1>dwm_xcb alpha</h1>
 
 =======
+<img src="http://vps.michel.mn/build.png">
 <p>
 Personal project only for fun and profit<br>
 The main goal is to learn XCB by hacking the source code of github.com/julian-goldsmith/dwm-xcb.<br>
