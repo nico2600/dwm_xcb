@@ -145,8 +145,8 @@ struct Monitor {
    unsigned int seltags;
    unsigned int sellt;
    unsigned int tagset[2];
-      unsigned int curtag;
-         unsigned int prevtag;
+   unsigned int curtag;
+   unsigned int prevtag;
    bool showbar;
    bool topbar;
    Client *clients;
@@ -194,6 +194,7 @@ static void configure(Client *c);
 static int configurenotify(xcb_generic_event_t *e);
 static int configurerequest(xcb_generic_event_t *e);
 static Monitor *createmon(void);
+static void cycle(const Arg *arg);
 static int destroynotify(xcb_generic_event_t *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
@@ -239,8 +240,10 @@ static void scan(void);
 static bool sendevent(Client *c,xcb_atom_t proto);
 static void sendmon(Client *c, Monitor *m);
 static void setclientstate(Client *c, long state);
+static void setfocus(Client *c);
+static void setfullscreen(Client *c, bool fullscreen);
 static void setlayout(const Arg *arg);
-static void setmfact(const Arg *arg);
+static void setcfact(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setup(void);
 static int shifttag(int dist);
@@ -248,6 +251,7 @@ static void showhide(Client *c);
 static void sigchld(int unused);
 static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
+static void tagcycle(const Arg *arg);
 static void tagmon(const Arg *arg);
 static int textnw(const char *text, unsigned int len);
 static void tile(Monitor *);
@@ -1495,8 +1499,8 @@ manage(xcb_window_t w){
    focus(NULL);
 // free(c->next);free(c->snext);
  //  free(c->mon);
-   free(c);
    free(t);
+   free(c);
 }
 
 int
@@ -1963,14 +1967,60 @@ sendevent(Client *c,xcb_atom_t proto) {
    xcb_flush(conn);
    return exists;
 }
-/*
+
+void takefocus(xcb_window_t win)
+{
+   xcb_client_message_event_t ev;
+   ev.response_type = XCB_CLIENT_MESSAGE;
+   ev.window = win;
+   ev.format = 32;
+   ev.data.data32[1] = XCB_CURRENT_TIME;
+   ev.type = wmatom[WMProtocols];
+   ev.data.data32[0] = XCB_SET_INPUT_FOCUS ;
+   xcb_send_event(conn, false, win,
+         XCB_EVENT_MASK_NO_EVENT, (char *) &ev);
+}
+
 void
 setfocus(Client *c) {
    if (!c->neverfocus)
       xcb_set_input_focus(conn, XCB_INPUT_FOCUS_PARENT, c->win,
             XCB_CURRENT_TIME);
-   sendevent(c, wmatom[WmTakeFocus]);
-}*/
+   takefocus(c->win);
+}
+
+void
+setfullscreen(Client *c, bool fullscreen) {
+const static uint32_t values[] = { XCB_STACK_MODE_ABOVE };
+
+   if(fullscreen) {
+      xcb_change_property(conn, XCB_PROP_MODE_REPLACE,
+            c->win, netatom[NetWMState], XCB_ATOM_ATOM, 32, 1, (unsigned char*)&netatom[NetWMFullscreen]);
+      c->isfullscreen = true;
+      c->oldstate = c->isfloating;
+      c->oldbw = c->bw;
+      c->bw = 0;
+      c->isfloating = true;
+      resizeclient(c, c->mon->mx, c->mon->my, c->mon->mw, c->mon->mh);
+
+      //raise window
+      xcb_configure_window(conn, c->win, XCB_CONFIG_WINDOW_STACK_MODE, values);
+   }
+   else {
+      xcb_change_property(conn, XCB_PROP_MODE_REPLACE,
+            c->win, netatom[NetWMState], XCB_ATOM_ATOM, 32, 1, (unsigned char*)0 );
+      c->isfullscreen = false;
+      c->isfloating = c->oldstate;
+      c->bw = c->oldbw;
+      c->x = c->oldx;
+      c->y = c->oldy;
+      c->w = c->oldw;
+      c->h = c->oldh;
+      resizeclient(c, c->x, c->y, c->w, c->h);
+      arrange(c->mon);
+   }
+}
+
 
 void
 setlayout(const Arg *arg) {
@@ -2184,6 +2234,13 @@ void tag(const Arg *arg) {
       focus(NULL);
       arrange(selmon);
    }
+}
+
+void
+tagcycle(const Arg *arg) {
+   const Arg a = { .i = shifttag(arg->i) };
+   tag(&a);
+   view(&a);
 }
 
 void tagmon(const Arg *arg) {
@@ -2537,9 +2594,9 @@ updatesizehints(Client *c)
 
 void
 updatetitle(Client *c) {
-   if(!gettextprop(c->win, netatom[NetWMName], c->name, sizeof c->name))
+   if(!gettextprop(c->win, netatom[NetWMName], c->name, sizeof(c->name)))
    {
-      if(!gettextprop(c->win, XCB_ATOM_WM_NAME, c->name, sizeof c->name))
+      if(!gettextprop(c->win, XCB_ATOM_WM_NAME, c->name, sizeof(c->name)))
          strcpy(c->name, broken);	// old broken hack?  why was it like that?
    }
 }
@@ -2570,7 +2627,7 @@ updatewmhints(Client *c) {
 
 void
 view(const Arg *arg) {
-   if((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
+   if(arg->ui && (arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
       return;
    selmon->seltags ^= 1; /* toggle sel tagset */
    if(arg->ui & TAGMASK)
@@ -2658,6 +2715,5 @@ main(int argc, char *argv[]) {
    }
    free(syms);
    free(conn);
-   free(xscreen);
    return EXIT_SUCCESS;
 }
