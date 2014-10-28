@@ -1,4 +1,6 @@
 language: c
+install:
+     - sudo apt-get install build-essential libx11-dev libxinerama-dev sharutils
 compiler:
      - clang
      - gcc
