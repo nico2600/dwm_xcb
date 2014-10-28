@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/nico2600/dwm_xcb.svg)](https://travis-ci.org/nico2600/dwm_xcb)
+
 <h1>dwm_xcb alpha</h1>
 
 =======
